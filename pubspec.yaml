@@ -1,0 +1,26 @@
+name: isar_benchmark
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  isar: ^2.5.0
+  isar_flutter_libs: any
+
+  objectbox: ^1.5.0
+  objectbox_flutter_libs: any
+
+  realm: ^0.2.1+alpha
+
+  path_provider: ^2.0.10
+  english_words: ^4.0.0
+  fl_chart: ^0.50.1
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+  build_runner: any
+  isar_generator: any
+  objectbox_generator: any

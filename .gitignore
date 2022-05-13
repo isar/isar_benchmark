@@ -1,0 +1,17 @@
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+.metadata
+/build/
+
+/android
+/ios
+/linux
+/macos
+/windows
+
+*.g.dart
+*.json
