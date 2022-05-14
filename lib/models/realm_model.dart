@@ -9,6 +9,7 @@ class _RealmIndexModel {
   @PrimaryKey()
   late int id;
 
+  @Indexed()
   late String title;
 
   late List<String> words;
@@ -42,6 +43,15 @@ RealmModel modelToRealm(Model model) {
     model.id,
     model.title,
     model.archived,
+    words: model.words,
+  );
+}
+
+Model realmToModel(RealmModel model) {
+  return Model(
+    id: model.id,
+    title: model.title,
+    archived: model.archived,
     words: model.words,
   );
 }

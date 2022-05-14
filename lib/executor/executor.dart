@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:isar_benchmark/executor/realm_executor.dart';
 import 'package:isar_benchmark/models/model.dart';
-import 'package:isar_benchmark/runner.dart';
 
 import 'isar_executor.dart';
 import 'objectbox_executor.dart';
@@ -13,29 +12,34 @@ abstract class Executor<T> {
 
   Executor(this.directory, this.repetitions);
 
-  Set<Benchmark> get supportedBenchmarks;
-
   FutureOr<T> prepareDatabase();
 
   FutureOr<void> finalizeDatabase(T db);
 
-  Future<int> runBenchmark(
+  Stream<int> runBenchmark(
     FutureOr<void> Function(T db) benchmark, {
     FutureOr<void> Function(T db)? prepare,
-  }) async {
+  }) async* {
     final s = Stopwatch();
     for (var i = 0; i < repetitions; i++) {
       final db = await prepareDatabase();
-      await prepare?.call(db);
-      s.start();
-      final result = benchmark(db);
-      if (result is Future) {
-        await result;
+
+      try {
+        await prepare?.call(db);
+        s.start();
+        final result = benchmark(db);
+        if (result is Future) {
+          await result;
+        }
+        s.stop();
+      } finally {
+        await finalizeDatabase(db);
       }
-      s.stop();
-      await finalizeDatabase(db);
+      yield (s.elapsedMilliseconds.toDouble() / (i + 1)).round();
+      if (i != repetitions - 1) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
     }
-    return (s.elapsedMilliseconds.toDouble() / repetitions).round();
   }
 
   static Executor getExecutor(
@@ -50,13 +54,23 @@ abstract class Executor<T> {
     }
   }
 
-  Future<int> insertSync(List<Model> models);
+  Stream<int> insertSync(List<Model> models);
 
-  Future<int> insertAsync(List<Model> models);
+  Stream<int> insertAsync(List<Model> models);
 
-  Future<int> deleteSync(List<Model> models);
+  Stream<int> getSync(List<Model> models);
 
-  Future<int> deleteAsync(List<Model> models);
+  Stream<int> getAsync(List<Model> models);
+
+  Stream<int> deleteSync(List<Model> models);
+
+  Stream<int> deleteAsync(List<Model> models);
+
+  Stream<int> filterQuery(List<Model> models);
+
+  Stream<int> filterSortQuery(List<Model> models);
+
+  Stream<int> dbSize(List<Model> models);
 }
 
 enum Database {

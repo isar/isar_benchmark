@@ -7,6 +7,7 @@ part 'isar_model.g.dart';
 class IsarIndexModel {
   final int id;
 
+  @Index()
   final String title;
 
   @Index(type: IndexType.hashElements)

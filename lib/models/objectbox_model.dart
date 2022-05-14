@@ -7,6 +7,7 @@ class ObjectBoxIndexModel {
   @Id(assignable: true)
   int id;
 
+  @Index()
   final String title;
 
   final List<String> words;
