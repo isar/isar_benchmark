@@ -13,8 +13,10 @@ class RealmExecutor extends Executor<Realm> {
 
   @override
   FutureOr<Realm> prepareDatabase() {
-    final config = Configuration([RealmModel.schema, RealmIndexModel.schema]);
-    config.path = realmFile;
+    final config = Configuration.local(
+      [RealmModel.schema, RealmIndexModel.schema],
+      path: realmFile,
+    );
     return Realm(config);
   }
 
@@ -40,7 +42,22 @@ class RealmExecutor extends Executor<Realm> {
   Stream<int> insertAsync(List<Model> models) => throw UnimplementedError();
 
   @override
-  Stream<int> getSync(List<Model> models) => throw UnimplementedError();
+  Stream<int> getSync(List<Model> models) {
+    final idsToGet = models.map((e) => e.id).where((e) => e % 2 == 0).toList();
+    return runBenchmark(
+      prepare: (realm) {
+        final realmModels = models.map(modelToRealm).toList();
+        realm.write(() {
+          realm.addAll(realmModels);
+        });
+      },
+      (realm) {
+        for (var id in idsToGet) {
+          realmToModel(realm.find<RealmModel>(id)!);
+        }
+      },
+    );
+  }
 
   @override
   Stream<int> getAsync(List<Model> models) => throw UnimplementedError();

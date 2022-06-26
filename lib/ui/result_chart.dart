@@ -20,6 +20,7 @@ class ResultChart extends StatelessWidget {
       }
     }
     return BarChart(
+      swapAnimationDuration: Duration.zero,
       BarChartData(
         barTouchData: getBarTouchData(theme),
         titlesData: getTitlesData(theme),

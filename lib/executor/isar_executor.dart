@@ -12,8 +12,8 @@ class IsarExecutor extends Executor<Isar> {
   @override
   FutureOr<Isar> prepareDatabase() {
     return Isar.open(
+      [IsarIndexModelSchema, IsarModelSchema],
       directory: directory,
-      schemas: [IsarIndexModelSchema, IsarModelSchema],
     );
   }
 
@@ -26,7 +26,7 @@ class IsarExecutor extends Executor<Isar> {
   Stream<int> insertSync(List<Model> models) {
     final isarModels = models.map(IsarModel.fromModel).toList();
     return runBenchmark((isar) {
-      isar.writeTxnSync((isar) {
+      isar.writeTxnSync(() {
         isar.isarModels.putAllSync(isarModels);
       });
     });
@@ -36,7 +36,7 @@ class IsarExecutor extends Executor<Isar> {
   Stream<int> insertAsync(List<Model> models) {
     final isarModels = models.map(IsarModel.fromModel).toList();
     return runBenchmark((isar) {
-      return isar.writeTxn((isar) {
+      return isar.writeTxn(() {
         return isar.isarModels.putAll(isarModels);
       });
     });
@@ -49,12 +49,12 @@ class IsarExecutor extends Executor<Isar> {
         isarModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn((isar) {
+        return isar.writeTxn(() {
           return isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
-        isar.writeTxnSync((isar) {
+        isar.writeTxnSync(() {
           isar.isarModels.getAllSync(idsToGet);
         });
       },
@@ -68,12 +68,12 @@ class IsarExecutor extends Executor<Isar> {
         isarModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn((isar) {
+        return isar.writeTxn(() {
           return isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
-        return isar.writeTxn((isar) {
+        return isar.writeTxn(() {
           return isar.isarModels.getAll(idsToGet);
         });
       },
@@ -87,12 +87,12 @@ class IsarExecutor extends Executor<Isar> {
         isarModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn((isar) {
+        return isar.writeTxn(() {
           return isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
-        isar.writeTxnSync((isar) {
+        isar.writeTxnSync(() {
           isar.isarModels.deleteAllSync(idsToDelete);
         });
       },
@@ -106,12 +106,12 @@ class IsarExecutor extends Executor<Isar> {
         isarModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn((isar) {
+        return isar.writeTxn(() {
           return isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
-        return isar.writeTxn((isar) {
+        return isar.writeTxn(() {
           return isar.isarModels.deleteAll(idsToDelete);
         });
       },
@@ -123,14 +123,14 @@ class IsarExecutor extends Executor<Isar> {
     final isarModels = models.map(IsarModel.fromModel).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn((isar) {
+        return isar.writeTxn(() {
           return isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
         isar.isarModels
             .filter()
-            .wordsAnyEqualTo('time')
+            .wordsElementEqualTo('time')
             .or()
             .titleContains('a')
             .findAllSync();
@@ -143,7 +143,7 @@ class IsarExecutor extends Executor<Isar> {
     final isarModels = models.map(IsarModel.fromModel).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn((isar) {
+        return isar.writeTxn(() {
           return isar.isarModels.putAll(isarModels);
         });
       },
@@ -162,10 +162,10 @@ class IsarExecutor extends Executor<Isar> {
     final isarModels = models.map(IsarModel.fromModel).toList();
     final isar = await prepareDatabase();
     try {
-      await isar.writeTxn((isar) {
+      await isar.writeTxn(() {
         return isar.isarModels.putAll(isarModels);
       });
-      final stat = await File('$directory/isar/mdbx.dat').stat();
+      final stat = await File('$directory/default.isar').stat();
       yield (stat.size / 1000).round();
     } finally {
       await finalizeDatabase(isar);
