@@ -148,17 +148,19 @@ class _BenchmarkAreaState extends State<BenchmarkArea> {
           ],
         ),
         const SizedBox(height: 20),
-        AspectRatio(
-          aspectRatio: 1,
-          child: results.isNotEmpty
-              ? ResultContainer(
-                  deviceName: widget.deviceName,
-                  results: results.values.toList(),
-                  objectCount: objectCount,
-                )
-              : const Center(
-                  child: Text('No results yet.'),
-                ),
+        Expanded(
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: results.isNotEmpty
+                ? ResultContainer(
+                    deviceName: widget.deviceName,
+                    results: results.values.toList(),
+                    objectCount: objectCount,
+                  )
+                : const Center(
+                    child: Text('No results yet.'),
+                  ),
+          ),
         ),
         const SizedBox(height: 20),
         ElevatedButton(
