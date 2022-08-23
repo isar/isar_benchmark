@@ -148,7 +148,7 @@ class _BenchmarkAreaState extends State<BenchmarkArea> {
           ],
         ),
         const SizedBox(height: 20),
-        Expanded(
+        Flexible(
           child: AspectRatio(
             aspectRatio: 1,
             child: results.isNotEmpty

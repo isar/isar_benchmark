@@ -7,7 +7,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  isar: ^3.0.0-dev.5
+  isar: ^3.0.0-dev.10
   isar_flutter_libs: any
 
   objectbox: ^1.5.0
@@ -24,7 +24,7 @@ dependencies:
 dev_dependencies:
   flutter_lints: ^2.0.0
   build_runner: any
-  isar_generator: ^3.0.0-dev.5
+  isar_generator: ^3.0.0-dev.10
   objectbox_generator: any
 
 dependency_overrides:

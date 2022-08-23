@@ -5,7 +5,7 @@ part 'isar_model.g.dart';
 
 @Collection()
 class IsarIndexModel {
-  final int id;
+  final Id id;
 
   @Index()
   final String title;
@@ -35,7 +35,7 @@ class IsarIndexModel {
 
 @Collection()
 class IsarModel {
-  final int id;
+  final Id id;
 
   final String title;
 
