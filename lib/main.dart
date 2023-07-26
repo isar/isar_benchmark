@@ -12,13 +12,10 @@ Future<String> getDeviceName() async {
   final info = DeviceInfoPlugin();
   if (Platform.isAndroid) {
     final androidInfo = await info.androidInfo;
-    return androidInfo.model ??
-        androidInfo.product ??
-        androidInfo.device ??
-        'Android Device';
+    return androidInfo.model;
   } else if (Platform.isIOS) {
     final iosInfo = await info.iosInfo;
-    return iosInfo.utsname.machine ?? iosInfo.model ?? 'iOS Device';
+    return iosInfo.utsname.machine;
   } else if (Platform.isLinux) {
     final linuxInfo = await info.linuxInfo;
     return linuxInfo.prettyName;
@@ -107,7 +104,7 @@ class _BenchmarkAreaState extends State<BenchmarkArea> {
 
   var benchmark = Benchmark.values[0];
   var objectCount = 50000;
-  var bigObjects = true;
+  var bigObjects = false;
   var running = false;
 
   @override

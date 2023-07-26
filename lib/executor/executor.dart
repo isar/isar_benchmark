@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:isar/isar.dart';
 import 'package:isar_benchmark/executor/realm_executor.dart';
 import 'package:isar_benchmark/models/model.dart';
 
@@ -46,7 +47,9 @@ abstract class Executor<T> {
       Database database, String directory, int repetitions) {
     switch (database) {
       case Database.isar:
-        return IsarExecutor(directory, repetitions);
+        return IsarExecutor(directory, repetitions, IsarEngine.isar);
+      case Database.isarSQLite:
+        return IsarExecutor(directory, repetitions, IsarEngine.sqlite);
       case Database.objectbox:
         return ObjectBoxExecutor(directory, repetitions);
       case Database.realm:
@@ -54,17 +57,13 @@ abstract class Executor<T> {
     }
   }
 
-  Stream<int> insertSync(List<Model> models);
+  Stream<int> get(List<Model> models);
 
-  Stream<int> insertAsync(List<Model> models);
+  Stream<int> insert(List<Model> models);
 
-  Stream<int> getSync(List<Model> models);
+  Stream<int> update(List<Model> models);
 
-  Stream<int> getAsync(List<Model> models);
-
-  Stream<int> deleteSync(List<Model> models);
-
-  Stream<int> deleteAsync(List<Model> models);
+  Stream<int> delete(List<Model> models);
 
   Stream<int> filterQuery(List<Model> models);
 
@@ -75,6 +74,7 @@ abstract class Executor<T> {
 
 enum Database {
   isar('Isar'),
+  isarSQLite('Isar SQLite'),
   objectbox('ObjectBox'),
   realm('Realm');
 

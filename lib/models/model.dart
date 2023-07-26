@@ -9,12 +9,18 @@ class Model {
 
   final List<String> words;
 
+  final int wordCount;
+
+  final double averageWordLength;
+
   final bool archived;
 
   const Model({
     required this.id,
     required this.title,
     required this.words,
+    required this.wordCount,
+    required this.averageWordLength,
     required this.archived,
   });
 
@@ -31,10 +37,18 @@ class Model {
     }
 
     for (var i = 1; i < count + 1; i++) {
+      final words = generateWords(big ? 50 : 5);
+      final wordsLengthSum = words.isEmpty
+          ? 0
+          : words
+              .map((e) => e.length)
+              .reduce((value, element) => value + element);
       models.add(Model(
         id: i,
         title: generateWords(big ? 50 : 5).join(' '),
-        words: generateWords(big ? 50 : 5),
+        words: words,
+        wordCount: words.length,
+        averageWordLength: wordsLengthSum / words.length,
         archived: rand.nextBool(),
       ));
     }

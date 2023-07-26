@@ -4,42 +4,16 @@ import 'package:isar_benchmark/models/model.dart';
 part 'isar_model.g.dart';
 
 @Collection()
-class IsarIndexModel {
-  final Id id;
-
-  @Index()
-  final String title;
-
-  @Index(type: IndexType.hashElements)
-  final List<String> words;
-
-  @Index(composite: [CompositeIndex('title')])
-  final bool archived;
-
-  const IsarIndexModel({
-    required this.id,
-    required this.title,
-    required this.words,
-    required this.archived,
-  });
-
-  factory IsarIndexModel.fromModel(Model model) {
-    return IsarIndexModel(
-      id: model.id,
-      title: model.title,
-      words: model.words,
-      archived: model.archived,
-    );
-  }
-}
-
-@Collection()
 class IsarModel {
-  final Id id;
+  final int id;
 
   final String title;
 
   final List<String> words;
+
+  final int wordCount;
+
+  final double averageWordLength;
 
   final bool archived;
 
@@ -47,6 +21,8 @@ class IsarModel {
     required this.id,
     required this.title,
     required this.words,
+    required this.wordCount,
+    required this.averageWordLength,
     required this.archived,
   });
 
@@ -55,6 +31,8 @@ class IsarModel {
       id: model.id,
       title: model.title,
       words: model.words,
+      wordCount: model.wordCount,
+      averageWordLength: model.averageWordLength,
       archived: model.archived,
     );
   }

@@ -6,14 +6,6 @@ import 'package:isar_benchmark/models/model.dart';
 import 'package:isar_benchmark/models/objectbox_model.dart';
 import 'package:isar_benchmark/objectbox.g.dart';
 
-List<ObjectBoxModel?> _getAsync(Store store, List<int> idsToGet) {
-  return store.box<ObjectBoxModel>().getMany(idsToGet);
-}
-
-void _deleteAsync(Store store, List<int> idsToDelete) {
-  store.box<ObjectBoxModel>().removeMany(idsToDelete);
-}
-
 class ObjectBoxExecutor extends Executor<Store> {
   ObjectBoxExecutor(super.directory, super.repetitions);
 
@@ -34,28 +26,7 @@ class ObjectBoxExecutor extends Executor<Store> {
   }
 
   @override
-  Stream<int> insertSync(List<Model> models) {
-    final obModels = models.map(ObjectBoxModel.fromModel).toList();
-    return runBenchmark((store) {
-      store.box<ObjectBoxModel>().putMany(obModels);
-    });
-  }
-
-  @override
-  Stream<int> insertAsync(List<Model> models) {
-    final obModels = models.map(ObjectBoxModel.fromModel).toList();
-    return runBenchmark((store) {
-      return store.runAsync<List<ObjectBoxModel>, void>(
-        (store, obModels) {
-          store.box<ObjectBoxModel>().putMany(obModels);
-        },
-        obModels,
-      );
-    });
-  }
-
-  @override
-  Stream<int> getSync(List<Model> models) {
+  Stream<int> get(List<Model> models) {
     final obModels = models.map(ObjectBoxModel.fromModel).toList();
     final idsToGet =
         obModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
@@ -70,25 +41,44 @@ class ObjectBoxExecutor extends Executor<Store> {
   }
 
   @override
-  Stream<int> getAsync(List<Model> models) {
+  Stream<int> insert(List<Model> models) {
     final obModels = models.map(ObjectBoxModel.fromModel).toList();
-    final idsToGet =
-        obModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
+    return runBenchmark((store) {
+      store.box<ObjectBoxModel>().putMany(obModels);
+    });
+  }
+
+  @override
+  Stream<int> update(List<Model> models) {
+    final obModels = models.map(ObjectBoxModel.fromModel).toList();
     return runBenchmark(
       prepare: (store) {
         store.box<ObjectBoxModel>().putMany(obModels);
       },
-      (store) async {
-        await store.runAsync<List<int>, List<ObjectBoxModel?>>(
-          _getAsync,
-          idsToGet,
-        );
+      (store) {
+        final objects = store
+            .box<ObjectBoxModel>()
+            .query(ObjectBoxModel_.archived.equals(true))
+            .build()
+            .find();
+
+        final updatedObjects = objects.map((e) {
+          return ObjectBoxModel(
+            id: e.id,
+            title: e.title,
+            words: e.words,
+            wordCount: e.wordCount,
+            averageWordLength: e.averageWordLength,
+            archived: false,
+          );
+        }).toList();
+        store.box<ObjectBoxModel>().putMany(updatedObjects);
       },
     );
   }
 
   @override
-  Stream<int> deleteSync(List<Model> models) {
+  Stream<int> delete(List<Model> models) {
     final obModels = models.map(ObjectBoxModel.fromModel).toList();
     final idsToDelete =
         obModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
@@ -103,21 +93,6 @@ class ObjectBoxExecutor extends Executor<Store> {
   }
 
   @override
-  Stream<int> deleteAsync(List<Model> models) {
-    final obModels = models.map(ObjectBoxModel.fromModel).toList();
-    final idsToDelete =
-        obModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
-    return runBenchmark(
-      prepare: (store) {
-        store.box<ObjectBoxModel>().putMany(obModels);
-      },
-      (store) {
-        return store.runAsync<List<int>, void>(_deleteAsync, idsToDelete);
-      },
-    );
-  }
-
-  @override
   Stream<int> filterQuery(List<Model> models) {
     final obModels = models.map(ObjectBoxModel.fromModel).toList();
     return runBenchmark(
@@ -125,15 +100,16 @@ class ObjectBoxExecutor extends Executor<Store> {
         store.box<ObjectBoxModel>().putMany(obModels);
       },
       (store) {
-        store
+        final q = store
             .box<ObjectBoxModel>()
             .query(
-              ObjectBoxModel_.words.contains('time').or(
+              ObjectBoxModel_.words.containsElement('time').or(
                     ObjectBoxModel_.title.contains('a'),
                   ),
             )
-            .build()
-            .find();
+            .build();
+        q.offset = 40000;
+        q.find();
       },
     );
   }

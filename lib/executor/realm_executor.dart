@@ -14,7 +14,7 @@ class RealmExecutor extends Executor<Realm> {
   @override
   FutureOr<Realm> prepareDatabase() {
     final config = Configuration.local(
-      [RealmModel.schema, RealmIndexModel.schema],
+      [RealmModel.schema],
       path: realmFile,
     );
     return Realm(config);
@@ -23,26 +23,11 @@ class RealmExecutor extends Executor<Realm> {
   @override
   FutureOr<void> finalizeDatabase(Realm db) async {
     db.close();
-    File(realmFile).deleteSync();
+    File(realmFile).delete();
   }
 
   @override
-  Stream<int> insertSync(List<Model> models) {
-    late List<RealmModel> realmModels;
-    return runBenchmark(prepare: (realm) {
-      realmModels = models.map(modelToRealm).toList();
-    }, (realm) {
-      realm.write(() {
-        realm.addAll(realmModels);
-      });
-    });
-  }
-
-  @override
-  Stream<int> insertAsync(List<Model> models) => throw UnimplementedError();
-
-  @override
-  Stream<int> getSync(List<Model> models) {
+  Stream<int> get(List<Model> models) {
     final idsToGet = models.map((e) => e.id).where((e) => e % 2 == 0).toList();
     return runBenchmark(
       prepare: (realm) {
@@ -60,10 +45,39 @@ class RealmExecutor extends Executor<Realm> {
   }
 
   @override
-  Stream<int> getAsync(List<Model> models) => throw UnimplementedError();
+  Stream<int> insert(List<Model> models) {
+    late List<RealmModel> realmModels;
+    return runBenchmark(prepare: (realm) {
+      realmModels = models.map(modelToRealm).toList();
+    }, (realm) {
+      realm.write(() {
+        realm.addAll(realmModels);
+      });
+    });
+  }
 
   @override
-  Stream<int> deleteSync(List<Model> models) {
+  Stream<int> update(List<Model> models) {
+    return runBenchmark(
+      prepare: (realm) {
+        final realmModels = models.map(modelToRealm).toList();
+        realm.write(() {
+          realm.addAll(realmModels);
+        });
+      },
+      (realm) {
+        final objects = realm.query<RealmModel>("archived == true");
+        realm.write(() {
+          for (final object in objects) {
+            object.archived = false;
+          }
+        });
+      },
+    );
+  }
+
+  @override
+  Stream<int> delete(List<Model> models) {
     late List<RealmModel> modelsToDelete;
     return runBenchmark(
       prepare: (realm) {
@@ -81,9 +95,6 @@ class RealmExecutor extends Executor<Realm> {
       },
     );
   }
-
-  @override
-  Stream<int> deleteAsync(List<Model> models) => throw UnimplementedError();
 
   @override
   Stream<int> filterQuery(List<Model> models) {

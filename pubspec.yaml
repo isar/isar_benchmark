@@ -1,35 +1,30 @@
 name: isar_benchmark
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
-  isar: ^3.0.0-dev.10
-  isar_flutter_libs: any
+  isar: ^4.0.0-dev.2
+  isar_flutter_libs: ^4.0.0-dev.2
 
-  objectbox: ^1.5.0
+  objectbox: ^2.1.0
   objectbox_flutter_libs: any
 
-  realm: ^0.3.1+alpha
+  realm: ^1.3.0
 
-  path_provider: ^2.0.10
+  path_provider: ^2.0.15
   english_words: ^4.0.0
-  fl_chart: ^0.55.0
-  share_plus: ^4.0.4
-  device_info_plus: ^4.0.0
+  fl_chart: ^0.63.0
+  share_plus: ^7.0.2
+  device_info_plus: ^9.0.2
 
 dev_dependencies:
-  flutter_lints: ^2.0.0
+  flutter_lints: ^2.0.2
   build_runner: any
-  isar_generator: ^3.0.0-dev.10
   objectbox_generator: any
-
-dependency_overrides:
-  analyzer: ^4.1.0
-  ffi: ^2.0.0
 
 flutter:
   uses-material-design: true

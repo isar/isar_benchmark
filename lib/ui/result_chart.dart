@@ -24,10 +24,11 @@ class ResultChart extends StatelessWidget {
       BarChartData(
         barTouchData: getBarTouchData(theme),
         titlesData: getTitlesData(theme),
-        alignment: BarChartAlignment.spaceAround,
+        alignment: BarChartAlignment.center,
         maxY: maxResult * 1.2,
-        gridData: FlGridData(show: false),
+        gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
+        groupsSpace: 70,
         barGroups: [
           for (var i = 0; i < results.length; i++)
             BarChartGroupData(
@@ -87,13 +88,13 @@ class ResultChart extends StatelessWidget {
           },
         ),
       ),
-      leftTitles: AxisTitles(
+      leftTitles: const AxisTitles(
         sideTitles: SideTitles(showTitles: false),
       ),
-      topTitles: AxisTitles(
+      topTitles: const AxisTitles(
         sideTitles: SideTitles(showTitles: false),
       ),
-      rightTitles: AxisTitles(
+      rightTitles: const AxisTitles(
         sideTitles: SideTitles(showTitles: false),
       ),
     );

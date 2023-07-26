@@ -3,36 +3,6 @@ import 'package:objectbox/objectbox.dart';
 import 'model.dart';
 
 @Entity()
-class ObjectBoxIndexModel {
-  @Id(assignable: true)
-  int id;
-
-  @Index()
-  final String title;
-
-  final List<String> words;
-
-  @Index()
-  final bool archived;
-
-  ObjectBoxIndexModel({
-    required this.id,
-    required this.title,
-    required this.words,
-    required this.archived,
-  });
-
-  factory ObjectBoxIndexModel.fromModel(Model model) {
-    return ObjectBoxIndexModel(
-      id: model.id,
-      title: model.title,
-      words: model.words,
-      archived: model.archived,
-    );
-  }
-}
-
-@Entity()
 class ObjectBoxModel {
   @Id(assignable: true)
   int id;
@@ -41,13 +11,18 @@ class ObjectBoxModel {
 
   final List<String> words;
 
-  @Index()
+  final int wordCount;
+
+  final double averageWordLength;
+
   final bool archived;
 
   ObjectBoxModel({
     required this.id,
     required this.title,
     required this.words,
+    required this.wordCount,
+    required this.averageWordLength,
     required this.archived,
   });
 
@@ -56,6 +31,8 @@ class ObjectBoxModel {
       id: model.id,
       title: model.title,
       words: model.words,
+      wordCount: model.wordCount,
+      averageWordLength: model.averageWordLength,
       archived: model.archived,
     );
   }

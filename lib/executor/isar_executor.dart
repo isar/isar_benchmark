@@ -7,112 +7,89 @@ import 'package:isar_benchmark/models/isar_model.dart';
 import 'package:isar_benchmark/models/model.dart';
 
 class IsarExecutor extends Executor<Isar> {
-  IsarExecutor(super.directory, super.repetitions);
+  IsarExecutor(super.directory, super.repetitions, this.engine);
+
+  final IsarEngine engine;
 
   @override
   FutureOr<Isar> prepareDatabase() {
     return Isar.open(
-      [IsarIndexModelSchema, IsarModelSchema],
+      schemas: [IsarModelSchema],
       directory: directory,
+      engine: engine,
+      maxSizeMiB: 1024,
     );
   }
 
   @override
   FutureOr<void> finalizeDatabase(Isar db) async {
-    await db.close(deleteFromDisk: true);
+    db.close(deleteFromDisk: true);
   }
 
   @override
-  Stream<int> insertSync(List<Model> models) {
-    final isarModels = models.map(IsarModel.fromModel).toList();
-    return runBenchmark((isar) {
-      isar.writeTxnSync(() {
-        isar.isarModels.putAllSync(isarModels);
-      });
-    });
-  }
-
-  @override
-  Stream<int> insertAsync(List<Model> models) {
-    final isarModels = models.map(IsarModel.fromModel).toList();
-    return runBenchmark((isar) {
-      return isar.writeTxn(() {
-        return isar.isarModels.putAll(isarModels);
-      });
-    });
-  }
-
-  @override
-  Stream<int> getSync(List<Model> models) {
+  Stream<int> get(List<Model> models) {
     final isarModels = models.map(IsarModel.fromModel).toList();
     final idsToGet =
         isarModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn(() {
-          return isar.isarModels.putAll(isarModels);
+        return isar.writeAsync((isar) {
+          isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
-        isar.writeTxnSync(() {
-          isar.isarModels.getAllSync(idsToGet);
+        isar.write((isar) {
+          isar.isarModels.getAll(idsToGet);
         });
       },
     );
   }
 
   @override
-  Stream<int> getAsync(List<Model> models) {
+  Stream<int> insert(List<Model> models) {
     final isarModels = models.map(IsarModel.fromModel).toList();
-    final idsToGet =
-        isarModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
+    return runBenchmark((isar) {
+      isar.write((isar) {
+        isar.isarModels.putAll(isarModels);
+      });
+    });
+  }
+
+  @override
+  Stream<int> update(List<Model> models) {
+    final isarModels = models.map(IsarModel.fromModel).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn(() {
-          return isar.isarModels.putAll(isarModels);
+        return isar.writeAsync((isar) {
+          isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
-        return isar.writeTxn(() {
-          return isar.isarModels.getAll(idsToGet);
+        isar.write((isar) {
+          isar.isarModels
+              .where()
+              .archivedEqualTo(true)
+              .build()
+              .updateAll(archived: false);
         });
       },
     );
   }
 
   @override
-  Stream<int> deleteSync(List<Model> models) {
-    final isarModels = models.map(IsarModel.fromModel).toList();
-    final idsToDelete =
-        isarModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
-    return runBenchmark(
-      prepare: (isar) {
-        return isar.writeTxn(() {
-          return isar.isarModels.putAll(isarModels);
-        });
-      },
-      (isar) {
-        isar.writeTxnSync(() {
-          isar.isarModels.deleteAllSync(idsToDelete);
-        });
-      },
-    );
-  }
-
-  @override
-  Stream<int> deleteAsync(List<Model> models) {
+  Stream<int> delete(List<Model> models) {
     final isarModels = models.map(IsarModel.fromModel).toList();
     final idsToDelete =
         isarModels.map((e) => e.id).where((e) => e % 2 == 0).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn(() {
-          return isar.isarModels.putAll(isarModels);
+        return isar.writeAsync((isar) {
+          isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
-        return isar.writeTxn(() {
-          return isar.isarModels.deleteAll(idsToDelete);
+        isar.write((isar) {
+          isar.isarModels.deleteAll(idsToDelete);
         });
       },
     );
@@ -123,17 +100,17 @@ class IsarExecutor extends Executor<Isar> {
     final isarModels = models.map(IsarModel.fromModel).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn(() {
-          return isar.isarModels.putAll(isarModels);
+        return isar.writeAsync((isar) {
+          isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
         isar.isarModels
-            .filter()
+            .where()
             .wordsElementEqualTo('time')
             .or()
             .titleContains('a')
-            .findAllSync();
+            .findAll(offset: 40000);
       },
     );
   }
@@ -143,16 +120,12 @@ class IsarExecutor extends Executor<Isar> {
     final isarModels = models.map(IsarModel.fromModel).toList();
     return runBenchmark(
       prepare: (isar) {
-        return isar.writeTxn(() {
-          return isar.isarModels.putAll(isarModels);
+        return isar.writeAsync((isar) {
+          isar.isarModels.putAll(isarModels);
         });
       },
       (isar) {
-        isar.isarModels
-            .filter()
-            .archivedEqualTo(true)
-            .sortByTitle()
-            .findAllSync();
+        isar.isarModels.where().archivedEqualTo(true).sortByTitle().findAll();
       },
     );
   }
@@ -162,11 +135,19 @@ class IsarExecutor extends Executor<Isar> {
     final isarModels = models.map(IsarModel.fromModel).toList();
     final isar = await prepareDatabase();
     try {
-      await isar.writeTxn(() {
-        return isar.isarModels.putAll(isarModels);
+      await isar.writeAsync((isar) {
+        isar.isarModels.putAll(isarModels);
       });
-      final stat = await File('$directory/default.isar').stat();
-      yield (stat.size / 1000).round();
+      if (engine == IsarEngine.isar) {
+        final stat = await File('$directory/default.isar').stat();
+        yield (stat.size / 1000).round();
+      } else {
+        print(Directory(directory).listSync());
+        final sqliteStat = await File('$directory/default.sqlite').stat();
+        final sqliteShmStat =
+            await File('$directory/default.sqlite-shm').stat();
+        yield ((sqliteStat.size + sqliteShmStat.size) / 1000).round();
+      }
     } finally {
       await finalizeDatabase(isar);
     }
